@@ -6,21 +6,27 @@ import { getFirestore } from 'firebase/firestore';
 // --- Firebase Configuration ---
 // IMPORTANT: Replace this with your actual Firebase config object
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDckTd6j_2JLGqVl0bJAt6nyn3CK-MoYkU",
+  authDomain: "educaation-afa1d.firebaseapp.com",
+  projectId: "educaation-afa1d",
+  storageBucket: "educaation-afa1d.firebasestorage.app",
+  messagingSenderId: "562101584367",
+  appId: "1:562101584367:web:d1eb1fcbfb163ef826f61a",
+  measurementId: "G-4C6WVDRDT5"
 };
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 // --- Gemini API Call Helpers ---
-const API_KEY = "AIzaSyDiW-ErO7JGNGflWgvJHbpwMt7co2cogQ8";
+const API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
+// Verify environment variables are loaded
+console.log("Gemini API Key:", API_KEY ? "***REDACTED***" : "MISSING");
+if (!API_KEY) {
+    console.error("Gemini API key is missing. Please:\n1. Check .env file exists\n2. Restart development server\n3. Ensure .env is in src folder");
+    alert("Learning features unavailable - API configuration error (check console)");
+}
 
 const callGeminiTextAPI = async (contents) => {
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
@@ -32,7 +38,10 @@ const callGeminiTextAPI = async (contents) => {
         return result.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't get a response.";
     } catch (error) {
         console.error("Gemini Text API call failed:", error);
-        return "My circuits are a bit scrambled. Please try again.";
+        if (error.message.includes("status")) {
+            return `Sorry, my circuits are busy (${error.message}). Please try again.`;
+        }
+        return "My learning circuits need repair (API issue). Try again later.";
     }
 };
 
@@ -46,7 +55,10 @@ const callGeminiJsonAPI = async (prompt, schema) => {
         return JSON.parse(result.candidates[0].content.parts[0].text);
     } catch (error) {
         console.error("Gemini JSON API call failed:", error);
-        return null;
+        if (error.message.includes("status")) {
+            console.warn("Possible authentication issue - check API key");
+        }
+        return { error: "Failed to process response. Please try again." };
     }
 };
 
@@ -151,43 +163,43 @@ const ChatBubble = ({ message, eraStyle }) => {
 const TimeTravelTeacher = ({ onBack, gradeLevel, addArtifact, setActiveScreen }) => {
     const [currentEra, setCurrentEra] = useState(null); const [messages, setMessages] = useState([]); const [input, setInput] = useState(''); const [isLoading, setIsLoading] = useState(false); const [challenge, setChallenge] = useState(null);
     const eras = [
-        { 
-            id: 'ramanujan', 
-            name: 'British India', 
-            character: 'Srinivasa Ramanujan', 
-            avatar: 'https://upload.wikimedia.org/wikipedia/commons/9/93/Srinivasa_Ramanujan.jpg', // Corrected URL
+        {
+              id: 'ramanujan',
+              name: 'British India',
+              character: 'Srinivasa Ramanujan',
+              avatar: '/avatars/ramanujan.jpg',
             style: 'parchment', 
-            image: 'https://images.unsplash.com/photo-1588614942502-12534316523c?q=80&w=800&auto=format&fit=crop', 
+            image: 'https://1.bp.blogspot.com/-B1DPbDYoYKo/X-DvAnhU5iI/AAAAAAAAHe8/Aq2WoabHl1Io4f2n9-aJpO3Gjmg5QUL5gCLcBGAsYHQ/s820/Ramanujan1.png', 
             challengePrompt: "Create a simple math puzzle about number patterns or infinity. Provide a question and the answer.", 
             artifactIcon: "♾️" 
         },
-        { 
-            id: 'cvraman', 
-            name: '20th Century India', 
-            character: 'C.V. Raman', 
-            avatar: 'https://upload.wikimedia.org/wikipedia/commons/4/4f/C.V._Raman.jpg', // Corrected URL
+        {
+              id: 'cvraman',
+              name: '20th Century India',
+              character: 'C.V. Raman',
+              avatar: '/avatars/cvraman.jpg',
             style: 'parchment', 
-            image: 'https://images.unsplash.com/photo-1603957829030-9b37c691a353?q=80&w=800&auto=format&fit=crop', 
+            image: 'https://www.thefamouspeople.com/profiles/images/c-v-raman-2.jpg', 
             challengePrompt: "Create a simple physics question about light or sound. Provide a question and the answer.", 
             artifactIcon: "💡" 
         },
-        { 
-            id: 'kalam', 
-            name: 'Modern India', 
-            character: 'Dr. A.P.J. Abdul Kalam', 
-            avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/A_P_J_Abdul_Kalam_2010.jpg/440px-A_P_J_Abdul_Kalam_2010.jpg', // Corrected URL
+        {
+              id: 'kalam',
+              name: 'Modern India',
+              character: 'Dr. A.P.J. Abdul Kalam',
+              avatar: '/avatars/kalam.jpg',
             style: 'holographic', 
-            image: 'https://images.unsplash.com/photo-1590272456521-413137f7a56f?q=80&w=800&auto=format&fit=crop', 
+            image: 'https://tse2.mm.bing.net/th/id/OIP.g5fP7mkyJfjGr8WYShMErQHaFS?r=0&rs=1&pid=ImgDetMain&o=7&rm=3', 
             challengePrompt: "Create an inspiring question about science, dreams, or the future of India. Provide a question and a thoughtful answer.", 
             artifactIcon: "🚀" 
         },
-        { 
-            id: 'einstein', 
-            name: '20th Century Science', 
-            character: 'Albert Einstein', 
-            avatar: 'https://upload.wikimedia.org/wikipedia/commons/d/d3/Albert_Einstein_Head.jpg', // Already valid
+        {
+              id: 'einstein',
+              name: '20th Century Science',
+              character: 'Albert Einstein',
+              avatar: '/avatars/einstein.jpg',
             style: 'parchment', 
-            image: 'https://images.unsplash.com/photo-1559137472-b69c124a92b2?q=80&w=800&auto=format&fit=crop', 
+            image: 'https://1.bp.blogspot.com/-eeYOiXwnehw/X3Rvi4Od0RI/AAAAAAAAA4U/94PRVjVnyKUE_R5Z5B05_IJqiDK2gnA2ACLcBGAsYHQ/s1920/Albert%2BEinstein%2Bneelcrew.jpg', 
             challengePrompt: "Create a simple physics puzzle about relativity or gravity. Provide a question and the answer.", 
             artifactIcon: "🔬" 
         },
@@ -195,9 +207,9 @@ const TimeTravelTeacher = ({ onBack, gradeLevel, addArtifact, setActiveScreen })
             id: 'aryabhata', 
             name: 'Gupta Empire', 
             character: 'Aryabhata', 
-            avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Aryabhata.jpg/440px-Aryabhata.jpg', // Corrected URL
+            avatar: '/avatars/aryabhata.jpg',
             style: 'parchment', 
-            image: 'https://images.unsplash.com/photo-1595357738210-4a4931a6a0a8?q=80&w=800&auto=format&fit=crop', 
+            image: 'https://www.thefamouspeople.com/profiles/images/aryabhata-5.jpg', 
             challengePrompt: "Create a simple number puzzle based on Aryabhata's work. Provide a question and the answer.", 
             artifactIcon: "➗" 
         }
@@ -335,6 +347,10 @@ const MindSymphony = ({ onBack, gradeLevel, addArtifact }) => {
     };
 
     const handlePlay = () => {
+        if (!window.speechSynthesis) {
+            alert('Text-to-speech not supported in this browser');
+            return;
+        }
         if (!fullTextToSpeak || speaking) return;
 
         const utterance = new SpeechSynthesisUtterance(fullTextToSpeak);
@@ -346,6 +362,7 @@ const MindSymphony = ({ onBack, gradeLevel, addArtifact }) => {
         utterance.onerror = (event) => {
             console.error('[MindSymphony] Speech synthesis error:', event.error);
             setSpeaking(false);
+            alert('Speech synthesis not supported. Try using Chrome or Edge browser.');
         };
         window.speechSynthesis.speak(utterance);
     };
@@ -428,12 +445,7 @@ const MindSymphony = ({ onBack, gradeLevel, addArtifact }) => {
 // --- Curiosity Quests ---
 const CuriosityQuests = ({ onBack, gradeLevel, addArtifact, initialTopic }) => {
     const [topic, setTopic] = useState(initialTopic || "Dinosaurs"); const [quest, setQuest] = useState(null); const [isLoading, setIsLoading] = useState(false); const [currentStep, setCurrentStep] = useState(0);
-    useEffect(() => {
-        if(initialTopic) {
-            generateQuest();
-        }
-    }, [initialTopic, generateQuest]);
-
+    
     const generateQuest = async (e) => {
         if(e) e.preventDefault(); 
         if (!topic.trim()) return;
@@ -444,8 +456,8 @@ const CuriosityQuests = ({ onBack, gradeLevel, addArtifact, initialTopic }) => {
         if (questData && questData.quest_steps) {
             const stepsWithImages = questData.quest_steps.map(step => ({ ...step, imageUrl: `https://source.unsplash.com/800x600/?${encodeURIComponent(topic)},${encodeURIComponent(step.story.split(' ')[0])}` }));
             setQuest({ ...questData, quest_steps: stepsWithImages });
-        }
         setIsLoading(false);
+        }
     };
     const handleNext = () => { if (quest && currentStep < quest.quest_steps.length - 1) { setCurrentStep(currentStep + 1); } else { addArtifact({ title: quest.title, icon: "🗺️" }); } };
     return (<div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8 font-sans flex items-center justify-center relative"><BackButton onClick={onBack} /><div className="w-full max-w-2xl bg-gray-800/50 p-6 sm:p-8 rounded-2xl border border-gray-700 shadow-2xl">{!quest && !isLoading ? (<div className="text-center"><h1 className="text-2xl font-bold text-cyan-400 mb-2">Curiosity Quest</h1><p className="text-gray-400 mb-6">Enter a topic to start a unique, AI-generated adventure!</p><form onSubmit={generateQuest} className="flex gap-4"><input type="text" value={topic} onChange={e => setTopic(e.target.value)} className="flex-1 bg-gray-700 border border-gray-600 rounded-lg py-3 px-4 text-white" placeholder="e.g., Dinosaurs, The Solar System..." /><button type="submit" className="bg-cyan-500 text-white font-bold py-2 px-8 rounded-lg hover:bg-cyan-600">Start Quest</button></form></div>) : (<>{<div className="flex justify-between items-center mb-4"><h1 className="text-2xl font-bold text-cyan-400">{isLoading ? "Generating Quest..." : quest.title}</h1><button onClick={() => setQuest(null)} className="text-sm text-gray-400 hover:text-white">New Quest</button></div>}<div className="w-full bg-gray-700 rounded-full h-2.5 mb-6"><div className="bg-cyan-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${quest ? (currentStep + 1) / quest.quest_steps.length * 100 : 0}%` }}></div></div><div className="relative h-96">{isLoading ? (<div className="flex flex-col items-center justify-center h-full"><Spinner /><p className="mt-4">Building your adventure...</p></div>) : quest.quest_steps.map((step, index) => (<div key={index} className={`absolute inset-0 transition-opacity duration-700 ${index === currentStep ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}><div className="w-full h-full flex flex-col"><img src={step.imageUrl} alt={topic} className="w-full h-56 object-cover rounded-t-lg bg-gray-700" /><div className="bg-gray-900/50 p-4 rounded-b-lg flex-grow flex items-center"><p className="text-gray-200 text-lg">{step.story}</p></div></div></div>))}</div><div className="mt-6 flex justify-between items-center"><p className="text-sm text-gray-400">Step {currentStep + 1} of {quest?.quest_steps?.length || 4}</p>{currentStep < (quest?.quest_steps?.length || 4) - 1 ? (<button onClick={handleNext} className="bg-cyan-500 text-white font-bold py-2 px-8 rounded-lg hover:bg-cyan-600">Next</button>) : (<p className="text-yellow-400 font-bold">Quest Complete! Artifact Collected!</p>)}</div></>)}</div></div>);
@@ -470,7 +482,7 @@ const TeacherDashboard = ({ onBack }) => (
 );
 
 // --- Main App Component ---
-export default function App() {
+const App = () => {
     const [activeScreen, setActiveScreen] = useState('dashboard');
     const [gradeLevel, setGradeLevel] = useState('6-8');
     const [journal, setJournal] = useState([]);
@@ -513,11 +525,30 @@ export default function App() {
         }
     };
 
-    return (<div className="antialiased">
+    return (
+      <div className="antialiased">
         {renderScreen()}
         {showJournal && <PersonalCuriosityJournal journal={journal} badges={badges} onClose={() => setShowJournal(false)} />}
         {showMysteryDrop && <MysteryDropModal onClose={() => setShowMysteryDrop(false)} addArtifact={addArtifactToJournal} />}
         {showLeaderboard && <LeaderboardModal onClose={() => setShowLeaderboard(false)} userStats={userStats} />}
-        {curiousTopic && <Modal onClose={() => setCuriousTopic(null)}><div className="text-center"><h2 className="text-2xl font-bold text-teal-400 mb-4">Feeling Curious?</h2><p className="text-gray-300 mb-6">How about starting a quest on the topic of...</p><p className="text-xl font-bold text-white mb-6">{curiousTopic}</p><button onClick={() => startCuriosityQuestFromSuggestion(curiousTopic)} className="w-full bg-teal-500 font-bold py-2 rounded-lg">Start Quest!</button></div></Modal>}
-    </div>);
-}
+        {curiousTopic && (
+          <Modal onClose={() => setCuriousTopic(null)}>
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-teal-400 mb-4">Feeling Curious?</h2>
+              <p className="text-gray-300 mb-6">How about starting a quest on the topic of...</p>
+              <p className="text-xl font-bold text-white mb-6">{curiousTopic}</p>
+              <button
+                onClick={() => startCuriosityQuestFromSuggestion(curiousTopic)}
+                className="w-full bg-teal-500 font-bold py-2 rounded-lg"
+              >
+                Start Quest!
+              </button>
+            </div>
+          </Modal>
+        )}
+      </div>
+    );
+};
+
+export default App;
+
